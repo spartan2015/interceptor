@@ -1,17 +1,3 @@
-//  Source file: P:/advantage/com.optiva.unified.aspects/SpannerDump.java
-
-/*
- * Copyright (c) Optiva Inc. 2000 - 2018  All Rights Reserved
- * The reproduction, transmission or use of this document or
- * its contents is not permitted without express written
- * authority. Offenders will be liable for damages. All rights,
- * including rights created by patent grant or registration of
- * a utility model or design, are reserved.
- * Technical modifications possible.
- * Technical specifications and features are binding only
- * insofar as they are specifically and expressly agreed upon
- * in a written contract.
- */
 
 package com.excellenceengineeringsolutions.profiler.output;
 
@@ -51,7 +37,7 @@ import java.util.concurrent.ThreadFactory;
  */
 public class SpannerDump
 {
-  public static final String PROJECT_ID = "redknee-cloud-spanner";
+  public static final String PROJECT_ID = "cloud-spanner";
   public static final String LOG_FOLDER = "/advdata/trace";
   public static final String LOG_FILE = LOG_FOLDER + "/error-interceptor.log";
   protected final static String INSTANCE_ID = "eu-instance";

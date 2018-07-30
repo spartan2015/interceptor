@@ -16,7 +16,8 @@ public class Interceptor
 
   public static final int MAX_STACK = 6;
 
-  @Around("!within(Interceptor) " +
+  /*
+  @Around("!within(com.excellenceengineeringsolutions.profiler.Interceptor) " +
     "&& (" +
     "(execution(* next(..)) && within(!com.google.cloud.spanner.SpannerImpl.GrpcResultSet)) ||" +
     "(execution(* *(..)) && within(de.siemens.advantage..*))" +
@@ -50,18 +51,9 @@ public class Interceptor
     }
     return result;
   }
+*/
 
-  private void addStack(StringBuilder sb)
-  {
-    for (int i = 0; i< MAX_STACK && i <  Thread.currentThread().getStackTrace().length; i++)
-    {
-      StackTraceElement element = Thread.currentThread().getStackTrace()[i];
-      sb.append(element.toString());
-      sb.append("\n");
-    }
-  }
-
-  @Around("!within(Interceptor) " +
+  @Around("!within(com.excellenceengineeringsolutions.profiler.Interceptor) " +
     "&& (" +
     "(execution(* next(..)) && within(com.google.cloud.spanner.SpannerImpl.GrpcResultSet))" +
     ")"
@@ -93,18 +85,7 @@ public class Interceptor
     return result;
   }
 
-  private void addSpannerSql(ProceedingJoinPoint joinPoint, StringBuilder sb) {
-    String name = joinPoint.getTarget() != null ? joinPoint.getTarget().getClass().getSimpleName() : "";
-    if ( "GrpcResultSet".equals(name) )
-    {
-      Object fieldValue = getFieldValue(joinPoint.getTarget(), "delegate.iterator.stream.val$request");
-      if (fieldValue!=null) {
-        sb.append(fieldValue.toString());
-      }
-    }
-  }
-
-  /*@Around("!within(Interceptor) " +
+  @Around("!within(com.excellenceengineeringsolutions.profiler.Interceptor) " +
     "&& (" +
     "(execution(* *(..)) && within(de.siemens.advantage.in.gdm1.gdf.base.impl.GdfBaseHomeCm)) ||" +
     "(execution(* *(..)) && within(de.siemens.advantage.in.gdm1.gdf.base.impl.GdfBaseHomeCp))" +
@@ -126,15 +107,9 @@ public class Interceptor
         System.out.println(method);
         StringBuilder sb = new StringBuilder();
 
-        String name = joinPoint.getTarget()!= null ? joinPoint.getTarget().getClass().getSimpleName() : "";
-        if ("GrpcResultSet".equals(name))
-        {
-          sb.append(getFieldValue(joinPoint.getTarget(), "delegate.iterator.stream.val$request"));
-        }
-        for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
-          sb.append(element.toString());
-          sb.append("\n");
-        }
+        addSpannerSql(joinPoint, sb);
+        addStack(sb);
+
         String args = getString(joinPoint.getArgs());
         String stacktrace = sb.toString();
 
@@ -142,7 +117,7 @@ public class Interceptor
       }
     }
     return result;
-  }*/
+  }
 
   /*@Around("!within(Interceptor) " +
     "&& (" +
@@ -195,8 +170,6 @@ public class Interceptor
     }
     return result;
   }*/
-
-
 
   private String getString(Object[] args)
   {
@@ -256,5 +229,26 @@ public class Interceptor
     }
     return (T) target;
   }
-}
 
+  private void addSpannerSql(ProceedingJoinPoint joinPoint, StringBuilder sb) {
+    String name = joinPoint.getTarget() != null ? joinPoint.getTarget().getClass().getSimpleName() : "";
+    if ( "GrpcResultSet".equals(name) )
+    {
+      Object fieldValue = getFieldValue(joinPoint.getTarget(), "delegate.iterator.stream.val$request");
+      if (fieldValue!=null) {
+        sb.append(fieldValue.toString());
+      }
+    }
+  }
+
+  private void addStack(StringBuilder sb)
+  {
+    for (int i = 0; i< MAX_STACK && i <  Thread.currentThread().getStackTrace().length; i++)
+    {
+      StackTraceElement element = Thread.currentThread().getStackTrace()[i];
+      sb.append(element.toString());
+      sb.append("\n");
+    }
+  }
+
+}

@@ -14,6 +14,8 @@ import java.lang.reflect.Field;
 public class Interceptor
 {
 
+  public static final int MAX_STACK = 6;
+
   @Around("!within(Interceptor) " +
     "&& (" +
     "(execution(* next(..)) && within(!com.google.cloud.spanner.SpannerImpl.GrpcResultSet)) ||" +
@@ -38,11 +40,7 @@ public class Interceptor
         System.out.println(method);
         StringBuilder sb = new StringBuilder();
 
-        String name = joinPoint.getTarget() != null ? joinPoint.getTarget().getClass().getSimpleName() : "";
-        if ( "GrpcResultSet".equals(name) )
-        {
-          sb.append(getFieldValue(joinPoint.getTarget(), "delegate.iterator.stream.val$request"));
-        }
+        addSpannerSql(joinPoint, sb);
         addStack(sb);
         String args = getString(joinPoint.getArgs());
         String stacktrace = sb.toString();
@@ -55,7 +53,7 @@ public class Interceptor
 
   private void addStack(StringBuilder sb)
   {
-    for (int i = 0; i<4 && i <  Thread.currentThread().getStackTrace().length;i++)
+    for (int i = 0; i< MAX_STACK && i <  Thread.currentThread().getStackTrace().length; i++)
     {
       StackTraceElement element = Thread.currentThread().getStackTrace()[i];
       sb.append(element.toString());
@@ -85,11 +83,7 @@ public class Interceptor
       System.out.println(method);
       StringBuilder sb = new StringBuilder();
 
-      String name = joinPoint.getTarget() != null ? joinPoint.getTarget().getClass().getSimpleName() : "";
-      if ( "GrpcResultSet".equals(name) )
-      {
-        sb.append(getFieldValue(joinPoint.getTarget(), "delegate.iterator.stream.val$request"));
-      }
+      addSpannerSql(joinPoint, sb);
       addStack(sb);
       String args = getString(joinPoint.getArgs());
       String stacktrace = sb.toString();
@@ -97,6 +91,17 @@ public class Interceptor
       SpannerDump.trace(method, args, stacktrace, start, end, duration);
     }
     return result;
+  }
+
+  private void addSpannerSql(ProceedingJoinPoint joinPoint, StringBuilder sb) {
+    String name = joinPoint.getTarget() != null ? joinPoint.getTarget().getClass().getSimpleName() : "";
+    if ( "GrpcResultSet".equals(name) )
+    {
+      Object fieldValue = getFieldValue(joinPoint.getTarget(), "delegate.iterator.stream.val$request");
+      if (fieldValue!=null) {
+        sb.append(fieldValue.toString());
+      }
+    }
   }
 
   /*@Around("!within(Interceptor) " +
